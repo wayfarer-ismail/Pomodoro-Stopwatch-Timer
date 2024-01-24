@@ -10,13 +10,12 @@
         android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="252dp"
-        android:text="TextView"
         app:layout_constraintBottom_toTopOf="@+id/linearLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="@string/default_time" />
 
     <LinearLayout
         android:id="@+id/linearLayout"
@@ -36,14 +35,14 @@
             style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="150dp"
             android:layout_height="match_parent"
-            android:text="Start" />
+            tools:text="@string/start" />
 
         <Button
             android:id="@+id/resetButton"
             style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="150dp"
             android:layout_height="match_parent"
-            android:text="Reset" />
+            tools:text="@string/reset" />
     </LinearLayout>
 
     <FrameLayout
