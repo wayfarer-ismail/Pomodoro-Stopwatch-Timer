@@ -39,7 +39,9 @@ class ButtonStartReset(private val context: Context,
     }
 
     private fun startFunction() {
-        handler.post(runnable)
+        if (seconds == 0) {
+            handler.post(runnable)
+        }
     }
 
     private fun resetFunction() {
