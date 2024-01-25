@@ -1,10 +1,15 @@
 package org.hyperskill.stopwatch.handlers
 
 import android.content.Context
+import android.content.res.ColorStateList
+import android.graphics.Color
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffColorFilter
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.widget.Button
+import android.widget.ProgressBar
 import android.widget.TextView
 import org.hyperskill.stopwatch.R
 
@@ -12,6 +17,7 @@ class ButtonStartReset(private val context: Context,
                        private val startButton: Button,
                        private val resetButton: Button,
                        private val textView: TextView,
+                       private val progressBar: ProgressBar
     ) {
 
     private var seconds = 0
@@ -23,18 +29,39 @@ class ButtonStartReset(private val context: Context,
             handler.postAtTime(this, SystemClock.uptimeMillis() + 1000)
         }
     }
+    private val colorChangeHandler = Handler(Looper.getMainLooper())
+    private val colorChangeRunnable = object : Runnable {
+        val colors = intArrayOf(Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW)
+        var colorIndex = 0
+
+        override fun run() {
+            val colorFilter = PorterDuffColorFilter(colors[colorIndex], PorterDuff.Mode.SRC_IN)
+            progressBar.indeterminateDrawable.colorFilter = colorFilter
+            colorIndex = (colorIndex + 1) % colors.size
+            colorChangeHandler.postDelayed(this, 1000)
+        }
+    }
 
     init {
         startButton.text = context.getString(R.string.start)
         resetButton.text = context.getString(R.string.reset)
         textView.text = context.getString(R.string.default_time)
+        // make progress bar invisible by defualt
+        progressBar.progress = 0
+        // make progress bar cycle through colors
+        progressBar.isIndeterminate = true
+        progressBar.visibility = ProgressBar.INVISIBLE
 
         startButton.setOnClickListener {
             startFunction()
+            progressBar.visibility = ProgressBar.VISIBLE
+            colorChangeHandler.post(colorChangeRunnable)
         }
 
         resetButton.setOnClickListener {
             resetFunction()
+            progressBar.visibility = ProgressBar.INVISIBLE
+            colorChangeHandler.removeCallbacks(colorChangeRunnable)
         }
     }
 
