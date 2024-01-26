@@ -1,13 +1,13 @@
 package org.hyperskill.stopwatch.handlers
 
 import android.content.Context
-import android.content.res.ColorStateList
 import android.graphics.Color
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
+import android.util.Log
 import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -31,7 +31,7 @@ class ButtonStartReset(private val context: Context,
     }
     private val colorChangeHandler = Handler(Looper.getMainLooper())
     private val colorChangeRunnable = object : Runnable {
-        val colors = intArrayOf(Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW)
+        val colors = intArrayOf(Color.parseColor("#ADD8E6"), Color.CYAN) // Light Blue and Cyan
         var colorIndex = 0
 
         override fun run() {
@@ -39,6 +39,10 @@ class ButtonStartReset(private val context: Context,
             progressBar.indeterminateDrawable.colorFilter = colorFilter
             colorIndex = (colorIndex + 1) % colors.size
             colorChangeHandler.postDelayed(this, 1000)
+
+            // Log the color of the progress bar
+            val color = progressBar.indeterminateDrawable.colorFilter
+            Log.d("ProgressBarColor", "Color: $color")
         }
     }
 
@@ -46,9 +50,8 @@ class ButtonStartReset(private val context: Context,
         startButton.text = context.getString(R.string.start)
         resetButton.text = context.getString(R.string.reset)
         textView.text = context.getString(R.string.default_time)
-        // make progress bar invisible by defualt
+
         progressBar.progress = 0
-        // make progress bar cycle through colors
         progressBar.isIndeterminate = true
         progressBar.visibility = ProgressBar.INVISIBLE
 
