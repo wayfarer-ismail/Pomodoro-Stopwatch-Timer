@@ -1,23 +1,23 @@
 package org.hyperskill.stopwatch.handlers
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics.Color
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffColorFilter
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
-import android.util.Log
 import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
 import org.hyperskill.stopwatch.R
 
-class ButtonStartReset(private val context: Context,
-                       private val startButton: Button,
-                       private val resetButton: Button,
-                       private val textView: TextView,
-                       private val progressBar: ProgressBar
+class ButtonStartReset(
+    context: Context,
+    startButton: Button,
+    resetButton: Button,
+    private val textView: TextView,
+    private val progressBar: ProgressBar
     ) {
 
     private var seconds = 0
@@ -34,15 +34,12 @@ class ButtonStartReset(private val context: Context,
         val colors = intArrayOf(Color.parseColor("#ADD8E6"), Color.CYAN) // Light Blue and Cyan
         var colorIndex = 0
 
+        @SuppressLint("NewApi")
         override fun run() {
-            val colorFilter = PorterDuffColorFilter(colors[colorIndex], PorterDuff.Mode.SRC_IN)
-            progressBar.indeterminateDrawable.colorFilter = colorFilter
+            val colorStateList = ColorStateList.valueOf(colors[colorIndex])
+            progressBar.indeterminateTintList = colorStateList
             colorIndex = (colorIndex + 1) % colors.size
             colorChangeHandler.postDelayed(this, 1000)
-
-            // Log the color of the progress bar
-            val color = progressBar.indeterminateDrawable.colorFilter
-            Log.d("ProgressBarColor", "Color: $color")
         }
     }
 
