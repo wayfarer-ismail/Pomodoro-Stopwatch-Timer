@@ -10,4 +10,5 @@ class UIElements(activity: AppCompatActivity) {
     val resetButton: Button = activity.findViewById(R.id.resetButton)
     val textView: TextView = activity.findViewById(R.id.textView)
     val progressBar: ProgressBar = activity.findViewById(R.id.progressBar)
+    val settingsButton: Button = activity.findViewById(R.id.settingsButton)
 }

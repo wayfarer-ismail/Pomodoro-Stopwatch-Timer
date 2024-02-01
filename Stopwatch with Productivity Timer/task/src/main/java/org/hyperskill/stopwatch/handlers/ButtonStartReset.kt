@@ -45,16 +45,22 @@ class ButtonStartReset(private val context: Context, private val ui: UIElements)
         ui.progressBar.isIndeterminate = true
         ui.progressBar.visibility = ProgressBar.INVISIBLE
 
+        setListeners()
+    }
+
+    private fun setListeners() {
         ui.startButton.setOnClickListener {
             startFunction()
             ui.progressBar.visibility = ProgressBar.VISIBLE
             colorChangeHandler.post(colorChangeRunnable)
+            ui.settingsButton.isEnabled = false
         }
 
         ui.resetButton.setOnClickListener {
             resetFunction()
             ui.progressBar.visibility = ProgressBar.INVISIBLE
             colorChangeHandler.removeCallbacks(colorChangeRunnable)
+            ui.settingsButton.isEnabled = true
         }
     }
 
