@@ -19,5 +19,7 @@ class MainActivity : AppCompatActivity() {
         val progressBar = findViewById<ProgressBar>(id.progressBar)
 
         ButtonStartReset(this, startButton, resetButton, textView, progressBar)
+        val uiElements = UIElements(this)
+
     }
 }
