@@ -2,15 +2,20 @@ package org.hyperskill.stopwatch.handlers
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.view.LayoutInflater
 import android.widget.EditText
 import android.widget.ProgressBar
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import org.hyperskill.stopwatch.R
 import org.hyperskill.stopwatch.UIElements
 import kotlin.concurrent.thread
@@ -28,10 +33,12 @@ class ButtonStartReset(private val context: Context, private val ui: UIElements)
             handler.postAtTime(this, SystemClock.uptimeMillis() + 1000)
         }
     }
-    private val changeTextColor = object  : Runnable {
+    private val onUpperLimitReached = object  : Runnable {
         override fun run() {
             if (upperLimit != 0 && seconds > upperLimit) {
                 ui.textView.setTextColor(Color.RED)
+                showNotification()
+                handler.removeCallbacks(this)
             }
             handler.postDelayed(this, 1000)
         }
@@ -57,6 +64,18 @@ class ButtonStartReset(private val context: Context, private val ui: UIElements)
         ui.progressBar.visibility = ProgressBar.INVISIBLE
 
         setListeners()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val name = context.getString(R.string.channel_name)
+            val descriptionText = context.getString(R.string.channel_description)
+            val importance = NotificationManager.IMPORTANCE_HIGH
+            val channel = NotificationChannel("org.hyperskill", name, importance).apply {
+                description = descriptionText
+            }
+            val notificationManager: NotificationManager =
+                context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
     }
 
     private fun setListeners() {
@@ -81,7 +100,7 @@ class ButtonStartReset(private val context: Context, private val ui: UIElements)
             thread {
                 handler.postDelayed(updateTime, 1000)
                 handler.postDelayed(colorChangeRunnable, 1000)
-                handler.postDelayed(changeTextColor, 1000)
+                handler.postDelayed(onUpperLimitReached, 1000)
             }
         }
     }
@@ -95,7 +114,7 @@ class ButtonStartReset(private val context: Context, private val ui: UIElements)
 
         handler.removeCallbacks(colorChangeRunnable)
         handler.removeCallbacks(updateTime)
-
+        handler.post(onUpperLimitReached)
     }
 
     private fun timeLimitAlertDialog(): AlertDialog? {
@@ -107,11 +126,28 @@ class ButtonStartReset(private val context: Context, private val ui: UIElements)
             .setView(contentView)
             .setPositiveButton("OK") { dialog, _ ->
                 val input = editText.text.toString()
-                upperLimit = if (input.isEmpty()) 0 else input.toInt()
+                upperLimit = if (input.isEmpty() or input.startsWith("-")) 0 else input.toInt()
                 dialog.dismiss()
             }
             .setNegativeButton("Cancel", null)
             .create()
+    }
+
+    private fun showNotification() {
+        val builder = NotificationCompat.Builder(context, "org.hyperskill")
+            .setSmallIcon(R.drawable.notif_icon)
+            .setContentTitle(context.getString(R.string.notification_title))
+            .setContentText(context.getString(R.string.notification_text))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setOnlyAlertOnce(true)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
+
+        val notification = builder.build()
+        notification.flags = notification.flags or NotificationCompat.FLAG_INSISTENT
+
+        with(NotificationManagerCompat.from(context)) {
+            notify(393939, notification)
+        }
     }
 
     private fun formatTime(sec: Int): String {
