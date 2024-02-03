@@ -1,7 +1,6 @@
 package org.hyperskill.stopwatch.handlers
 
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
 import android.content.res.ColorStateList
@@ -14,26 +13,29 @@ import android.widget.EditText
 import android.widget.ProgressBar
 import org.hyperskill.stopwatch.R
 import org.hyperskill.stopwatch.UIElements
+import kotlin.concurrent.thread
 
 class ButtonStartReset(private val context: Context, private val ui: UIElements) {
 
     private var seconds = 0
     private var upperLimit = 0
-    private val handler = Handler(Looper.getMainLooper())
-    private val runnable = object : Runnable {
-        override fun run() {
-            ui.textView.text = formatTime(seconds)
-            seconds++
 
+    private val handler = Handler(Looper.getMainLooper())
+    private val updateTime = object : Runnable {
+        override fun run() {
+            seconds++
+            ui.textView.text = formatTime(seconds)
             handler.postAtTime(this, SystemClock.uptimeMillis() + 1000)
-            if (seconds == upperLimit) {
-                (context as Activity).runOnUiThread {
-                    ui.textView.setTextColor(Color.RED)
-                }
-            }
         }
     }
-    private val colorChangeHandler = Handler(Looper.getMainLooper())
+    private val changeTextColor = object  : Runnable {
+        override fun run() {
+            if (upperLimit != 0 && seconds > upperLimit) {
+                ui.textView.setTextColor(Color.RED)
+            }
+            handler.postDelayed(this, 1000)
+        }
+    }
     private val colorChangeRunnable = object : Runnable {
         val colors = intArrayOf(Color.parseColor("#ADD8E6"), Color.CYAN) // Light Blue and Cyan
         var colorIndex = 0
@@ -43,7 +45,7 @@ class ButtonStartReset(private val context: Context, private val ui: UIElements)
             val colorStateList = ColorStateList.valueOf(colors[colorIndex])
             ui.progressBar.indeterminateTintList = colorStateList
             colorIndex = (colorIndex + 1) % colors.size
-            colorChangeHandler.postDelayed(this, 1000)
+            handler.postDelayed(this, 1000)
         }
     }
 
@@ -52,8 +54,6 @@ class ButtonStartReset(private val context: Context, private val ui: UIElements)
         ui.resetButton.text = context.getString(R.string.reset)
         ui.textView.text = context.getString(R.string.default_time)
 
-        ui.progressBar.progress = 0
-        ui.progressBar.isIndeterminate = true
         ui.progressBar.visibility = ProgressBar.INVISIBLE
 
         setListeners()
@@ -62,16 +62,10 @@ class ButtonStartReset(private val context: Context, private val ui: UIElements)
     private fun setListeners() {
         ui.startButton.setOnClickListener {
             startFunction()
-            ui.progressBar.visibility = ProgressBar.VISIBLE
-            colorChangeHandler.post(colorChangeRunnable)
-            ui.settingsButton.isEnabled = false
         }
 
         ui.resetButton.setOnClickListener {
             resetFunction()
-            ui.progressBar.visibility = ProgressBar.INVISIBLE
-            colorChangeHandler.removeCallbacks(colorChangeRunnable)
-            ui.settingsButton.isEnabled = true
         }
 
         ui.settingsButton.setOnClickListener {
@@ -80,16 +74,28 @@ class ButtonStartReset(private val context: Context, private val ui: UIElements)
     }
 
     private fun startFunction() {
+        ui.progressBar.visibility = ProgressBar.VISIBLE
+        ui.settingsButton.isEnabled = false
+
         if (seconds == 0) {
-            handler.post(runnable)
+            thread {
+                handler.postDelayed(updateTime, 1000)
+                handler.postDelayed(colorChangeRunnable, 1000)
+                handler.postDelayed(changeTextColor, 1000)
+            }
         }
     }
 
     private fun resetFunction() {
-        handler.removeCallbacks(runnable)
         seconds = 0
         ui.textView.text = formatTime(seconds)
         ui.textView.setTextColor(Color.BLACK)
+        ui.progressBar.visibility = ProgressBar.INVISIBLE
+        ui.settingsButton.isEnabled = true
+
+        handler.removeCallbacks(colorChangeRunnable)
+        handler.removeCallbacks(updateTime)
+
     }
 
     private fun settingsFunction() {
