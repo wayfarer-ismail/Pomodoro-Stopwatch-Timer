@@ -69,7 +69,7 @@ class ButtonStartReset(private val context: Context, private val ui: UIElements)
         }
 
         ui.settingsButton.setOnClickListener {
-            settingsFunction()
+            timeLimitAlertDialog()?.show()
         }
     }
 
@@ -98,29 +98,20 @@ class ButtonStartReset(private val context: Context, private val ui: UIElements)
 
     }
 
-    private fun settingsFunction() {
-        val builder = AlertDialog.Builder(context)
-        val inflater = LayoutInflater.from(context)
-        val dialogLayout = inflater.inflate(R.layout.dialog_layout, null)
-        val editText = dialogLayout.findViewById<EditText>(R.id.upperLimitEditText)
+    private fun timeLimitAlertDialog(): AlertDialog? {
+        val contentView = LayoutInflater.from(context).inflate(R.layout.dialog_layout, null, false)
+        val editText = contentView.findViewById<EditText>(R.id.upperLimitEditText)
 
-        builder.setView(dialogLayout)
-        builder.setPositiveButton("OK") { dialog, _ ->
-            // Handle OK button click
-            val input = editText.text.toString()
-            // set upper limit and change text color when reached
-            upperLimit = if (input.isEmpty() || !input.matches("[0-9]+".toRegex())) 0 else input.toInt()
-            println(upperLimit)
-
-            dialog.dismiss()
-        }
-        builder.setNegativeButton("Cancel") { dialog, _ ->
-            // Handle Cancel button click
-            dialog.dismiss()
-        }
-
-        val dialog = builder.create()
-        dialog.show()
+        return AlertDialog.Builder(context)
+            .setTitle("Set upper limit")
+            .setView(contentView)
+            .setPositiveButton("OK") { dialog, _ ->
+                val input = editText.text.toString()
+                upperLimit = if (input.isEmpty()) 0 else input.toInt()
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel", null)
+            .create()
     }
 
     private fun formatTime(sec: Int): String {
