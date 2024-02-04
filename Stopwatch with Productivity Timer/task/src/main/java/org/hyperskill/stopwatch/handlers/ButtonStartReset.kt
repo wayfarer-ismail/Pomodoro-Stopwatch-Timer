@@ -39,8 +39,9 @@ class ButtonStartReset(private val context: Context, private val ui: UIElements)
                 ui.textView.setTextColor(Color.RED)
                 showNotification()
                 handler.removeCallbacks(this)
+            } else {
+                handler.postDelayed(this, 1000)
             }
-            handler.postDelayed(this, 1000)
         }
     }
     private val colorChangeRunnable = object : Runnable {
